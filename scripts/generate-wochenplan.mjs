@@ -39,12 +39,24 @@ function isoDate(d) {
 const monday = mondayOfCurrentWeek(new Date());
 const weekOfStr = isoDate(monday);
 
+const CHECKLIST_CTA = {
+  'Handwerker': 'Schreiben Sie "Checkliste" in die Kommentare, dann schicke ich Ihnen kostenlos die Checkliste "5 Aufgaben, die Handwerksbetriebe 2026 sofort mit KI automatisieren können".',
+  'Steuerberater': 'Schreiben Sie "Checkliste" in die Kommentare, dann schicke ich Ihnen kostenlos die Checkliste "0-Eingabe-Buchung: 5 Schritte zur automatisierten Belegverarbeitung".',
+  'Allgemein': 'Schreiben Sie "Checkliste" in die Kommentare, dann schicke ich Ihnen kostenlos die Checkliste "5 Anzeichen, dass Ihr Unternehmen reif für KI-Automatisierung ist".'
+};
+
 const systemPrompt = `Du bist der Social-Media-Content-Assistent für ZYNTEVO, eine KI-Automatisierungs-Agentur für deutsche KMU.
 Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse. Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
 Aktuell wird AUSSCHLIESSLICH LinkedIn bespielt, Instagram und TikTok sind pausiert, erzeuge dafür keine Inhalte.
 Wochenmuster (nur LinkedIn): Mo=Gründer-Einblick, Mi=Fallstudie, Fr=Bildungspost.
 LinkedIn-Ton: Sie-Form, professionell mit persönlichem Einschlag, kurze Absätze, konkrete Zahlen, starke erste Zeile, max 3-5 Hashtags, keine Gedankenstriche, keine KI-Floskeln, kein Eigenlob ohne Substanz.
-Verteile die Zielgruppen (Handwerker, Immobilienmakler, Steuerberater, Allgemein) gemischt über die drei Posts.
+Verteile die Zielgruppen für Mo und Mi gemischt über: Handwerker, Immobilienmakler, Steuerberater, Allgemein.
+
+WICHTIGE REGEL FÜR DEN FREITAGSPOST (Bildungspost): die Zielgruppe für Freitag muss IMMER genau eine von diesen drei sein: "Handwerker", "Steuerberater" oder "Allgemein" (niemals Immobilienmakler). Der Freitagspost bewirbt einen kostenlosen Checklisten-Download als Lead-Magnet. Baue als letzten Absatz des Textes, VOR den Hashtags, GENAU diesen Satz unverändert ein (passend zur gewählten Zielgruppe):
+- Bei Zielgruppe Handwerker: "${CHECKLIST_CTA['Handwerker']}"
+- Bei Zielgruppe Steuerberater: "${CHECKLIST_CTA['Steuerberater']}"
+- Bei Zielgruppe Allgemein: "${CHECKLIST_CTA['Allgemein']}"
+Dieser Satz muss als eigener, deutlich sichtbarer letzter Absatz stehen, nicht im Fließtext versteckt.
 
 Unternehmens-Kontext (ZYNTEVO):
 ${vaultContext}
