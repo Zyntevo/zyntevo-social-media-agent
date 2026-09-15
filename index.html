@@ -508,6 +508,63 @@ function saveSettings(key, val){ state.settings[key]=val; saveState(); }
 function calPrevMonth(){ calMonth--; if(calMonth<0){calMonth=11; calYear--;} render(); }
 function calNextMonth(){ calMonth++; if(calMonth>11){calMonth=0; calYear++;} render(); }
 
+//////////////////// AUTO-WOCHENPLAN (via GitHub Actions) ////////////////////
+let autoPlan = null;
+function loadAutoPlan(){
+  fetch('./data/wochenplan.json?t='+Date.now())
+    .then(r=> r.ok ? r.json() : null)
+    .then(data=>{
+      if(data && data.weekOf && data.weekOf !== state.settings.dismissedAutoWeek){
+        autoPlan = data;
+        render();
+      }
+    })
+    .catch(()=>{});
+}
+function importAutoPlanPost(idx){
+  if(!autoPlan) return;
+  const item = autoPlan.posts[idx];
+  const dayIndex = {Mo:0,Di:1,Mi:2,Do:3,Fr:4,Sa:5,So:6};
+  const monday = new Date(autoPlan.weekOf+'T00:00:00');
+  const d = new Date(monday); d.setDate(d.getDate() + (dayIndex[item.tag]||0));
+  state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:item.audience||'Allgemein', topic:'', content:item.content, createdAt:todayISO(), scheduledDate:d.toISOString().slice(0,10), status:'geplant' });
+  saveState();
+  item.imported = true;
+  render();
+}
+function dismissAutoPlan(){
+  if(!autoPlan) return;
+  state.settings.dismissedAutoWeek = autoPlan.weekOf;
+  saveState();
+  autoPlan = null;
+  render();
+}
+function renderAutoPlanBanner(){
+  if(!autoPlan) return '';
+  return `
+    <div class="glass-card" style="border-radius:12px;padding:20px;margin-bottom:24px;border-color:rgba(201,168,76,0.4);">
+      <div class="row1" style="margin-bottom:10px;">
+        <h2 class="sectiontitle" style="margin:0;">${icon('sparkles')}Automatisch erstellter Wochenplan (Woche vom ${autoPlan.weekOf})</h2>
+        <button class="btn-outline" onclick="dismissAutoPlan()">Verwerfen</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Wurde automatisch generiert. Prüfe jeden Post und übernimm ihn erst nach deiner Freigabe.</div>
+      ${autoPlan.posts.map((item,idx)=>`
+        <div class="post-item" style="background:#fff;">
+          <div class="row1">
+            <div class="tagset">
+              <span class="pill pill-gold">${item.tag}</span>
+              <span class="pill" style="background:${hexAlpha(PLATFORM_COLOR[item.platform]||'#888','1A')};color:${PLATFORM_COLOR[item.platform]||'#888'}">${PLATFORM_LABEL[item.platform]||item.platform}</span>
+              <span class="pill pill-gold">${esc(item.type||'')}</span>
+            </div>
+            ${item.imported ? '<span class="pill pill-gold">Übernommen</span>' : `<button class="btn-outline" style="background:var(--gold);color:#000;border-color:var(--gold);" onclick="importAutoPlanPost(${idx})">Übernehmen</button>`}
+          </div>
+          <div class="snippet">${esc(item.content||'')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 //////////////////// RENDER ////////////////////
 function navItem(id, label, iconName){
   const active = activeTab===id;
@@ -563,6 +620,7 @@ function renderDashboard(){
       <h1 class="pagetitle font-display">${greet}, <span class="gold-text">Jan Wichmann</span></h1>
       <p class="pagesub">Dein ZYNTEVO Content-Cockpit</p>
     </div>
+    ${renderAutoPlanBanner()}
     <div class="section kpi-grid">
       <div class="glass-card kpi-card"><div class="kpi-top"><span>Posts diese Woche</span>${icon('pen')}</div><div class="kpi-value gold-text">${week.length}</div></div>
       <div class="glass-card kpi-card"><div class="kpi-top"><span>Posts diesen Monat</span>${icon('trendingUp')}</div><div class="kpi-value gold-text">${month.length}</div></div>
@@ -677,6 +735,7 @@ function renderWochenplan(){
       <h1 class="pagetitle font-display">Wochenplan</h1>
       <p class="pagesub">Generiere einen kompletten 7-Tage Content-Plan für alle Plattformen</p>
     </div>
+    ${renderAutoPlanBanner()}
     <div class="field-block">
       <label class="field-label">Zielgruppe</label>
       <div class="row-gap">
@@ -838,6 +897,7 @@ function renderEinstellungen(){
 }
 
 render();
+loadAutoPlan();
 </script>
 </body>
 </html>
