@@ -291,7 +291,9 @@ const DEFAULT_VAULT_CONTEXT = `ZYNTEVO ist eine KI-Automatisierungs-Agentur für
 
 Angebot: individuelle KI-Automatisierungen (Setup einmalig 800-2.500€ je nach Komplexität, plus Retainer 97-197€/Monat für laufende Pflege). Positionierung: konkrete, greifbare Ergebnisse statt KI-Buzzwords, Vertrauen vor Abschluss aufbauen. Geld-zurück-Garantie statt Gratis-Testphase.
 
-Aktueller Referenzkunde: ein mittelständisches Apotheken-Unternehmen, dort wird gerade eine Aufgabenverwaltung für Mitarbeiter sowie Reporting-/Datenautomatisierung umgesetzt.
+Aktueller Kundenauftrag (Stand: in der Umsetzung, NICHT abgeschlossen): eine Apotheken-Unternehmensgruppe hat eine Aufgabenverwaltung für Mitarbeiter sowie Reporting-/Datenautomatisierung beauftragt. Es gibt noch KEINE abgeschlossenen, gemessenen Ergebnisse (keine eingesparten Stunden, keine Prozentzahlen o.ä.), da das Projekt noch nicht live ist. Über diesen Auftrag darf nur ehrlich als "laufendes Projekt in der Umsetzung" gesprochen werden, ohne erfundene Vorher-/Nachher-Zahlen oder Behauptungen über bereits erzielte Ergebnisse.
+
+Wichtig: ZYNTEVO hat aktuell noch KEINE abgeschlossene, referenzfähige Fallstudie mit belegbaren Ergebnissen. Erfinde niemals Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Ein "Beweis"-Post kann stattdessen ehrlich ein allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) beschreiben, ohne so zu tun, als sei es ein abgeschlossener ZYNTEVO-Kundenfall.
 
 Ton: auf LinkedIn Sie-Form, professionell mit persönlichem Einschlag, auf Instagram/TikTok Duzen. Nie erkennbar nach KI klingen: keine Gedankenstriche, keine KI-Floskeln, menschlicher und direkter Ton.`;
 
@@ -400,6 +402,8 @@ function buildSystemPrompt(platform){
 Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse für Handwerker, Makler und Berater.
 Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
 
+WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Bei Content-Typ "Fallstudie" gilt: entweder ehrlich den einen tatsächlich laufenden Kundenauftrag als "aktuelles Projekt in der Umsetzung" beschreiben, ohne erfundene Ergebnisse, oder ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und nicht als abgeschlossener ZYNTEVO-Kundenfall.
+
 Plattform: ${rules.label}
 Ton: ${rules.ton}
 Dos: ${rules.dos.join(', ')}
@@ -454,6 +458,8 @@ Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse. Content-
 Aktuell wird AUSSCHLIESSLICH LinkedIn bespielt, Instagram und TikTok sind pausiert, erzeuge dafür keine Inhalte.
 Wochenmuster (nur LinkedIn): Mo=Gründer-Einblick, Mi=Fallstudie, Fr=Bildungspost. Dienstag, Donnerstag, Samstag und Sonntag gibt es keinen Post.
 LinkedIn-Ton: Sie-Form, professionell mit persönlichem Einschlag, kurze Absätze, konkrete Zahlen, starke erste Zeile, max 3-5 Hashtags, keine Gedankenstriche, keine KI-Floskeln, kein Eigenlob ohne Substanz.
+
+WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Der Mittwochspost ("Fallstudie") darf entweder (a) den einen tatsächlich laufenden Kundenauftrag ehrlich als "aktuelles Projekt in der Umsetzung" beschreiben, ohne erfundene Ergebnisse oder Zahlen zu behaupten, oder (b) ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und nicht als abgeschlossener ZYNTEVO-Kundenfall.
 
 WICHTIGE REGEL FÜR DEN FREITAGSPOST (Bildungspost): die Zielgruppe für Freitag muss IMMER genau eine von diesen drei sein: "Handwerker", "Steuerberater" oder "Allgemein" (niemals Immobilienmakler). Der Freitagspost bewirbt einen kostenlosen Checklisten-Download als Lead-Magnet. Baue als letzten Absatz des Textes, VOR den Hashtags, GENAU diesen Satz unverändert ein (passend zur gewählten Zielgruppe):
 - Bei Zielgruppe Handwerker: "${checklistCTA['Handwerker']}"
