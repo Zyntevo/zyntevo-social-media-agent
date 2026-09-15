@@ -241,6 +241,9 @@ table.wk-table tr:hover td{background:rgba(0,0,0,0.03);}
 .cal-daylabel{padding:8px 0; text-align:center; font-size:11px; font-weight:600; color:var(--muted); border-bottom:1px solid rgba(0,0,0,0.06);}
 .cal-cell{min-height:80px; padding:6px; border-bottom:1px solid rgba(0,0,0,0.06); border-right:1px solid rgba(0,0,0,0.06);}
 .cal-cell.empty{border:none;}
+.cal-cell.has-posts{cursor:pointer;}
+.cal-cell.has-posts:hover{background:rgba(201,168,76,0.06);}
+.cal-cell.selected{background:rgba(201,168,76,0.12);}
 .cal-daynum{font-size:11px; font-family:monospace; color:var(--muted);}
 .cal-post{font-size:10px; margin-top:3px; display:flex; align-items:center; gap:4px;}
 .cal-dot{width:6px;height:6px;border-radius:50%;flex:none;}
@@ -291,9 +294,7 @@ const DEFAULT_VAULT_CONTEXT = `ZYNTEVO ist eine KI-Automatisierungs-Agentur für
 
 Angebot: individuelle KI-Automatisierungen (Setup einmalig 800-2.500€ je nach Komplexität, plus Retainer 97-197€/Monat für laufende Pflege). Positionierung: konkrete, greifbare Ergebnisse statt KI-Buzzwords, Vertrauen vor Abschluss aufbauen. Geld-zurück-Garantie statt Gratis-Testphase.
 
-Aktueller Kundenauftrag (Stand: in der Umsetzung, NICHT abgeschlossen): eine Apotheken-Unternehmensgruppe hat eine Aufgabenverwaltung für Mitarbeiter sowie Reporting-/Datenautomatisierung beauftragt. Es gibt noch KEINE abgeschlossenen, gemessenen Ergebnisse (keine eingesparten Stunden, keine Prozentzahlen o.ä.), da das Projekt noch nicht live ist. Über diesen Auftrag darf nur ehrlich als "laufendes Projekt in der Umsetzung" gesprochen werden, ohne erfundene Vorher-/Nachher-Zahlen oder Behauptungen über bereits erzielte Ergebnisse.
-
-Wichtig: ZYNTEVO hat aktuell noch KEINE abgeschlossene, referenzfähige Fallstudie mit belegbaren Ergebnissen. Erfinde niemals Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Ein "Beweis"-Post kann stattdessen ehrlich ein allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) beschreiben, ohne so zu tun, als sei es ein abgeschlossener ZYNTEVO-Kundenfall.
+Wichtig: ZYNTEVO hat aktuell noch KEINE abgeschlossene, referenzfähige Fallstudie mit belegbaren Ergebnissen. Erfinde niemals Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Erwähne oder umschreibe auch keine bestehenden oder laufenden Kundenprojekte, auch nicht anonymisiert oder branchenbezogen, und auch nicht die Andeutung, überhaupt schon einen zahlenden Kunden zu haben. Ein "Beweis"-Post soll stattdessen ausschließlich ein allgemeines, glaubwürdiges Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) beschreiben, klar als eigene Beobachtung und ohne jeden Bezug zu einem ZYNTEVO-Kunden.
 
 Ton: auf LinkedIn Sie-Form, professionell mit persönlichem Einschlag, auf Instagram/TikTok Duzen. Nie erkennbar nach KI klingen: keine Gedankenstriche, keine KI-Floskeln, menschlicher und direkter Ton.`;
 
@@ -324,6 +325,7 @@ let wpOutput = null;
 
 let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
+let calSelectedDate = null;
 
 //////////////////// DATA ////////////////////
 const PLATFORM_COLOR = { linkedin:'#0A66C2', instagram:'#E1306C', tiktok:'#FF0050' };
@@ -402,7 +404,7 @@ function buildSystemPrompt(platform){
 Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse für Handwerker, Makler und Berater.
 Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
 
-WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Bei Content-Typ "Fallstudie" gilt: entweder ehrlich den einen tatsächlich laufenden Kundenauftrag als "aktuelles Projekt in der Umsetzung" beschreiben, ohne erfundene Ergebnisse, oder ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und nicht als abgeschlossener ZYNTEVO-Kundenfall.
+WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Erwähne oder umschreibe auch KEINE bestehenden oder laufenden Kundenprojekte, auch nicht anonymisiert oder branchenbezogen. Bei Content-Typ "Fallstudie" gilt: ausschließlich ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und ohne jeden Bezug zu einem ZYNTEVO-Kunden.
 
 Plattform: ${rules.label}
 Ton: ${rules.ton}
@@ -459,7 +461,7 @@ Aktuell wird AUSSCHLIESSLICH LinkedIn bespielt, Instagram und TikTok sind pausie
 Wochenmuster (nur LinkedIn): Mo=Gründer-Einblick, Mi=Fallstudie, Fr=Bildungspost. Dienstag, Donnerstag, Samstag und Sonntag gibt es keinen Post.
 LinkedIn-Ton: Sie-Form, professionell mit persönlichem Einschlag, kurze Absätze, konkrete Zahlen, starke erste Zeile, max 3-5 Hashtags, keine Gedankenstriche, keine KI-Floskeln, kein Eigenlob ohne Substanz.
 
-WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Der Mittwochspost ("Fallstudie") darf entweder (a) den einen tatsächlich laufenden Kundenauftrag ehrlich als "aktuelles Projekt in der Umsetzung" beschreiben, ohne erfundene Ergebnisse oder Zahlen zu behaupten, oder (b) ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und nicht als abgeschlossener ZYNTEVO-Kundenfall.
+WICHTIGE REGEL GEGEN ERFUNDENE FALLSTUDIEN: ZYNTEVO hat aktuell noch KEINEN abgeschlossenen, referenzfähigen Kundenfall mit belegbaren Ergebnissen. Erfinde NIEMALS Kundennamen, Kundenzitate, konkrete Vorher-/Nachher-Zahlen (z.B. "X Stunden gespart", "Y% weniger Aufwand") oder abgeschlossene Erfolgsgeschichten, die es nicht gibt. Erwähne oder umschreibe auch KEINE bestehenden oder laufenden Kundenprojekte, auch nicht anonymisiert oder branchenbezogen, und auch nicht die Andeutung, überhaupt schon einen zahlenden Kunden zu haben. Der Mittwochspost ("Fallstudie") soll stattdessen ausschließlich ein glaubwürdiges, allgemeines Branchenmuster aus eigener Führungserfahrung (LIDL, Telekom-Partner) schildern, klar als eigene Beobachtung und ohne jeden Bezug zu einem ZYNTEVO-Kunden.
 
 WICHTIGE REGEL FÜR DEN FREITAGSPOST (Bildungspost): die Zielgruppe für Freitag muss IMMER genau eine von diesen drei sein: "Handwerker", "Steuerberater" oder "Allgemein" (niemals Immobilienmakler). Der Freitagspost bewirbt einen kostenlosen Checklisten-Download als Lead-Magnet. Baue als letzten Absatz des Textes, VOR den Hashtags, GENAU diesen Satz unverändert ein (passend zur gewählten Zielgruppe):
 - Bei Zielgruppe Handwerker: "${checklistCTA['Handwerker']}"
@@ -785,6 +787,15 @@ function renderWochenplan(){
   `;
 }
 
+function copyPostContent(id, btnEl){
+  const p = state.posts.find(x=>x.id===id);
+  if(!p) return;
+  copyToClipboard(p.content||'', btnEl);
+}
+function selectCalDay(dateStr){
+  calSelectedDate = (calSelectedDate===dateStr) ? null : dateStr;
+  render();
+}
 function renderKalender(){
   const first = new Date(calYear, calMonth, 1);
   const numDays = new Date(calYear, calMonth+1, 0).getDate();
@@ -795,12 +806,14 @@ function renderKalender(){
   for(let day=1; day<=numDays; day++){
     const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const dayPosts = state.posts.filter(p=>p.scheduledDate===dateStr);
-    cells += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${dayPosts.map(p=>`<div class="cal-post"><span class="cal-dot" style="background:${PLATFORM_COLOR[p.platform]}"></span>${PLATFORM_LABEL[p.platform]}</div>`).join('')}</div>`;
+    const selected = calSelectedDate===dateStr;
+    cells += `<div class="cal-cell ${dayPosts.length?'has-posts':''} ${selected?'selected':''}" ${dayPosts.length?`onclick="selectCalDay('${dateStr}')"`:''}><div class="cal-daynum">${day}</div>${dayPosts.map(p=>`<div class="cal-post"><span class="cal-dot" style="background:${PLATFORM_COLOR[p.platform]}"></span>${PLATFORM_LABEL[p.platform]}</div>`).join('')}</div>`;
   }
+  const dayPosts = calSelectedDate ? state.posts.filter(p=>p.scheduledDate===calSelectedDate) : [];
   return `
     <div class="section">
       <h1 class="pagetitle font-display"><span class="gold-text">Content</span> Kalender</h1>
-      <p class="pagesub">Übersicht aller erstellten und geplanten Posts</p>
+      <p class="pagesub">Übersicht aller erstellten und geplanten Posts. Auf einen Tag mit Posts klicken, um den vollständigen Text zu sehen und zu kopieren.</p>
     </div>
     <div class="cal-nav">
       <button onclick="calPrevMonth()">${icon('chevronLeft')}</button>
@@ -816,6 +829,23 @@ function renderKalender(){
     <div class="cal-legend">
       <span><span class="dot" style="background:#0A66C2"></span>LinkedIn</span>
     </div>
+    ${dayPosts.length ? `
+      <div class="section" style="margin-top:24px;">
+        <h2 class="sectiontitle">${icon('calendar')}Posts am ${calSelectedDate}</h2>
+        ${dayPosts.map(p=>`
+          <div class="glass-card post-item">
+            <div class="row1">
+              <div class="tagset">
+                <span class="pill" style="background:${hexAlpha(PLATFORM_COLOR[p.platform],'1A')};color:${PLATFORM_COLOR[p.platform]}">${PLATFORM_LABEL[p.platform]}</span>
+                <span class="pill pill-gold">${esc(p.contentType||'')}</span>
+              </div>
+              <button class="btn-outline" onclick="copyPostContent('${p.id}', this)">Kopieren</button>
+            </div>
+            <div class="output-box" style="margin-top:6px;">${esc(p.content||'')}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
   `;
 }
 
