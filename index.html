@@ -794,6 +794,12 @@ function copyPostContent(id, btnEl){
   if(!p) return;
   copyToClipboard(p.content||'', btnEl);
 }
+function deleteCalPost(id){
+  state.posts = state.posts.filter(p=>p.id!==id);
+  saveState();
+  if(calSelectedDate && !state.posts.some(p=>p.scheduledDate===calSelectedDate)){ calSelectedDate=null; }
+  render();
+}
 function selectCalDay(dateStr){
   calSelectedDate = (calSelectedDate===dateStr) ? null : dateStr;
   render();
@@ -841,7 +847,10 @@ function renderKalender(){
                 <span class="pill" style="background:${hexAlpha(PLATFORM_COLOR[p.platform],'1A')};color:${PLATFORM_COLOR[p.platform]}">${PLATFORM_LABEL[p.platform]}</span>
                 <span class="pill pill-gold">${esc(p.contentType||'')}</span>
               </div>
-              <button class="btn-outline" onclick="copyPostContent('${p.id}', this)">Kopieren</button>
+              <div class="row-gap" style="gap:6px;">
+                <button class="btn-outline" onclick="copyPostContent('${p.id}', this)">Kopieren</button>
+                <button class="delete-btn" onclick="deleteCalPost('${p.id}')">Löschen</button>
+              </div>
             </div>
             <div class="output-box" style="margin-top:6px;">${esc(p.content||'')}</div>
           </div>
