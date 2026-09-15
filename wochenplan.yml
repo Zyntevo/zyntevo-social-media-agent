@@ -1,0 +1,33 @@
+name: ZYNTEVO Wochenplan
+
+on:
+  schedule:
+    # Jeden Montag 05:00 UTC (entspricht ca. 06:00-07:00 deutscher Zeit, je nach Sommer-/Winterzeit)
+    - cron: '0 5 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Wochenplan generieren
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate-wochenplan.mjs
+
+      - name: Commit und Push
+        run: |
+          git config user.name "ZYNTEVO Wochenplan Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/wochenplan.json
+          git diff --staged --quiet || git commit -m "Automatischer Wochenplan-Entwurf"
+          git push
