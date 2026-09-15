@@ -446,19 +446,47 @@ async function generateWochenplan(){
     let vaultBlock = state.settings.vaultContext ? `\n\nUnternehmens-Kontext (ZYNTEVO):\n${state.settings.vaultContext}` : '';
     const sys = `Du bist der Social-Media-Content-Assistent für ZYNTEVO, eine KI-Automatisierungs-Agentur für deutsche KMU.
 Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse. Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
-Wochenmuster: Mo=LinkedIn Gründer-Einblick + Instagram Story, Di=Instagram Carousel + TikTok Hook-Video, Mi=LinkedIn Fallstudie + Instagram Story, Do=Instagram Persönlich + TikTok Tutorial, Fr=LinkedIn Bildungspost + Instagram Story + TikTok Storytelling, Sa=Instagram Reel + TikTok POV-Format, So=Instagram Story Rückblick.
-LinkedIn: Sie-Form, professionell, keine Gedankenstriche, keine KI-Floskeln, max 3-5 Hashtags.
-Instagram/TikTok: Duzen, nahbar/direkt.${vaultBlock}
+Aktuell wird AUSSCHLIESSLICH LinkedIn bespielt, Instagram und TikTok sind pausiert, erzeuge dafür keine Inhalte.
+Wochenmuster (nur LinkedIn): Mo=Gründer-Einblick, Mi=Fallstudie, Fr=Bildungspost. Dienstag, Donnerstag, Samstag und Sonntag gibt es keinen Post.
+LinkedIn-Ton: Sie-Form, professionell mit persönlichem Einschlag, kurze Absätze, konkrete Zahlen, starke erste Zeile, max 3-5 Hashtags, keine Gedankenstriche, keine KI-Floskeln, kein Eigenlob ohne Substanz.${vaultBlock}
 
-Gib die Antwort AUSSCHLIESSLICH als valides JSON-Array zurück, keine Erklärung davor oder danach. Format:
-[{"tag":"Mo","platform":"linkedin","type":"Gründer-Einblick","content":"..."}, ...]
-Erzeuge für jeden Tag genau die Posts, die im Wochenmuster für diesen Tag vorgesehen sind (kann 0, 1 oder 2 Einträge pro Tag sein, "—" bedeutet kein Post auf der Plattform).`;
+Erzeuge ausschließlich die drei LinkedIn-Posts für Mo, Mi und Fr, keine weiteren Tage oder Plattformen.
+
+Gib die Antwort AUSSCHLIESSLICH in folgendem Format zurück, für jeden Post einen Block, direkt hintereinander, KEIN JSON, KEIN Markdown-Codeblock, keine Erklärung davor oder danach:
+
+===POST===
+TAG: Mo
+PLATTFORM: linkedin
+TYP: Gründer-Einblick
+TEXT:
+Der vollständige, fertige Post-Text kommt hier hin. Kann mehrere Absätze und normale Satzzeichen inklusive Anführungszeichen enthalten.
+===ENDE===
+
+PLATTFORM ist immer genau "linkedin", "instagram" oder "tiktok" (kleingeschrieben).`;
     const userPrompt = `Zielgruppe für diese Woche: ${wpAudience}. Erstelle den kompletten 7-Tage-Plan.`;
-    const result = await callClaude(sys, userPrompt, 3000);
-    let jsonText = result.trim();
-    const match = jsonText.match(/\[[\s\S]*\]/);
-    if(match) jsonText = match[0];
-    wpOutput = JSON.parse(jsonText);
+    const result = await callClaude(sys, userPrompt, 8000);
+    const parsed = [];
+    const blocks = result.split(/===\s*POST\s*===/i).slice(1);
+    for(const block of blocks){
+      const endIdx = block.search(/===\s*ENDE\s*===/i);
+      const body = endIdx>=0 ? block.slice(0, endIdx) : block;
+      const tagMatch = body.match(/TAG:\s*(.+)/i);
+      const platMatch = body.match(/PLATTFORM:\s*(.+)/i);
+      const typeMatch = body.match(/TYP:\s*(.+)/i);
+      const textMatch = body.match(/TEXT:\s*([\s\S]*)/i);
+      if(tagMatch && platMatch && textMatch){
+        parsed.push({
+          tag: tagMatch[1].trim(),
+          platform: platMatch[1].trim().toLowerCase(),
+          type: typeMatch ? typeMatch[1].trim() : '',
+          content: textMatch[1].trim()
+        });
+      }
+    }
+    if(parsed.length===0){
+      throw new Error('Die Antwort konnte nicht gelesen werden. Bitte nochmal versuchen ("Wochenplan generieren" erneut klicken).');
+    }
+    wpOutput = parsed;
   }catch(e){
     errorMsg = e.message==='NO_KEY' ? 'Bitte zuerst einen Anthropic API Key in den Einstellungen eintragen.' : ('Fehler beim Generieren: '+e.message);
   }
@@ -542,24 +570,17 @@ function renderDashboard(){
     </div>
     <div class="section">
       <h2 class="sectiontitle">${icon('sparkles')}Schnellzugriff</h2>
-      <div class="quick-grid">
+      <div class="quick-grid" style="grid-template-columns:repeat(2,1fr);max-width:420px;">
         <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('linkedin','Gründer-Einblick')">
           <div class="quick-icon" style="background-color:${hexAlpha('#0A66C2','15')}"><span style="color:#0A66C2">${icon('linkedin')}</span></div>
           <span class="quick-label">LinkedIn-Post</span>
-        </a>
-        <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('instagram','Carousel (Vorher/Nachher)')">
-          <div class="quick-icon" style="background-color:${hexAlpha('#E1306C','15')}"><span style="color:#E1306C">${icon('instagram')}</span></div>
-          <span class="quick-label">Instagram Carousel</span>
-        </a>
-        <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('tiktok','Hook-Video')">
-          <div class="quick-icon" style="background-color:${hexAlpha('#FF0050','15')}"><span style="color:#FF0050">${icon('tiktok')}</span></div>
-          <span class="quick-label">TikTok-Skript</span>
         </a>
         <a class="glass-card glass-card-hover quick-card" onclick="setTab('wochenplan')">
           <div class="quick-icon" style="background-color:${hexAlpha('#C9A84C','15')}"><span style="color:#C9A84C">${icon('calendarDays')}</span></div>
           <span class="quick-label">Wochenplan generieren</span>
         </a>
       </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:10px;">Instagram und TikTok sind aktuell pausiert, Fokus liegt erst mal auf LinkedIn.</div>
     </div>
     <div class="section">
       <h2 class="sectiontitle">${icon('calendarDays')}Diese Woche geplant</h2>
@@ -601,11 +622,12 @@ function renderGenerator(){
     </div>
 
     <div class="field-block row-gap">
-      ${['linkedin','instagram','tiktok'].map(p=>{
+      ${['linkedin'].map(p=>{
         const active = genPlatform===p; const color = PLATFORM_COLOR[p];
         return `<button class="platform-btn ${active?'glass-card':''}" style="${active?`border-color:${hexAlpha(color,'40')};background-color:${hexAlpha(color,'10')}`:''}" onclick="setGenPlatform('${p}')"><span style="color:${color}">${icon(PLATFORM_ICON[p])}</span>${PLATFORM_LABEL[p]}</button>`;
       }).join('')}
     </div>
+    <div style="font-size:11.5px;color:var(--muted);margin:-16px 0 24px;">Instagram und TikTok sind aktuell pausiert, Fokus liegt erst mal auf LinkedIn.</div>
 
     <div class="field-block">
       <label class="field-label">Content-Typ</label>
@@ -717,8 +739,6 @@ function renderKalender(){
     </div>
     <div class="cal-legend">
       <span><span class="dot" style="background:#0A66C2"></span>LinkedIn</span>
-      <span><span class="dot" style="background:#E1306C"></span>Instagram</span>
-      <span><span class="dot" style="background:#FF0050"></span>TikTok</span>
     </div>
   `;
 }
@@ -735,6 +755,7 @@ function renderStrategie(){
       <h1 class="pagetitle font-display"><span class="gold-text">Social Media</span> Strategie</h1>
       <p class="pagesub">Positionierung: KI-Automatisierung ohne Buzzwords. Konkrete Ergebnisse für Handwerker, Makler und Berater.</p>
     </div>
+    <div class="notice-red" style="background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);color:var(--gold-accent);">Aktuell wird nur LinkedIn aktiv bespielt. Instagram und TikTok sind hier als späterer Ausbauplan dokumentiert, aber im Content Generator und Wochenplan derzeit pausiert.</div>
     <div class="section">
       <h2 class="sectiontitle">${icon('target')}Content-Säulen</h2>
       <div class="strategie-cols">
