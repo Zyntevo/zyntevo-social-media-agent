@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZYNTEVO Social Media Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#C9A84C; --gold-accent:#A6832F; --gold-light:#F0C040;
+  --ink:#221F1B; --muted:#6E665E;
+  --linkedin:#0A66C2; --instagram:#E1306C; --tiktok:#FF0050;
+  --sidebar-w:256px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'DM Sans','DM Sans Fallback',system-ui,sans-serif;
+  color:var(--ink);
+  background-color:#FCFAF8;
+  background-image:
+    radial-gradient(80% 60% at 50% -20%, rgba(201,168,76,0.1), rgba(0,0,0,0)),
+    radial-gradient(50% 50% at 100% 0px, rgba(201,168,76,0.06), rgba(0,0,0,0));
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  min-height:100vh;
+  font-size:16px;
+}
+.font-display{font-family:'Plus Jakarta Sans','Plus Jakarta Sans Fallback','DM Sans',sans-serif;}
+.gold-text{
+  background-image:linear-gradient(135deg, var(--gold-accent), #D4AF37);
+  -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+
+/* Glass card */
+.glass-card{
+  background:rgba(255,255,255,0.72);
+  border:1px solid rgba(255,255,255,0.9);
+  box-shadow:0 4px 24px rgba(150,120,40,0.07), 0 1px 3px rgba(40,32,10,0.05);
+}
+.glass-card-hover{transition:all .2s;}
+.glass-card-hover:hover{transform:translateY(-2px); box-shadow:0 8px 28px rgba(150,120,40,0.12), 0 2px 5px rgba(40,32,10,0.08);}
+
+/* Sidebar */
+.sidebar{
+  position:fixed; top:0; left:0; z-index:50; height:100%; width:var(--sidebar-w);
+  display:flex; flex-direction:column; border-right:1px solid rgba(0,0,0,0.08);
+  background:#fff; transition:transform .3s;
+}
+.sidebar-header{
+  display:flex; align-items:center; justify-content:space-between; height:64px; padding:0 24px;
+  border-bottom:1px solid rgba(0,0,0,0.08); flex:none;
+}
+.sidebar-logo{font-size:20px; font-weight:700; letter-spacing:-0.5px;}
+.sidebar-close{display:none; background:none; border:none; padding:4px;}
+.sidebar-nav{flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:4px;}
+.nav-item{
+  display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+  font-size:14px; font-weight:500; color:var(--muted); border:1px solid transparent; transition:all .2s;
+}
+.nav-item:hover{color:var(--ink); background:rgba(0,0,0,0.04);}
+.nav-item.active{background:rgba(201,168,76,0.1); color:var(--gold-accent); border-color:rgba(201,168,76,0.2);}
+.nav-item svg{width:16px;height:16px;flex:none;}
+.sidebar-footer{padding:12px; border-top:1px solid rgba(0,0,0,0.08);}
+.menu-toggle{
+  display:none; position:fixed; top:16px; left:16px; z-index:60; padding:8px; border-radius:10px;
+  border:1px solid rgba(255,255,255,0.9);
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:40;}
+
+@media(max-width:1023px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar.open + .sidebar-overlay, .sidebar-overlay.show{display:block;}
+  .sidebar-close{display:block;}
+  .menu-toggle{display:block;}
+  main{padding-left:0 !important;}
+}
+
+main{padding-left:var(--sidebar-w); min-height:100vh;}
+.page-inner{padding:32px; max-width:1024px; margin:0 auto;}
+.page-inner.narrow{max-width:896px;}
+@media(max-width:768px){.page-inner{padding:16px;}}
+
+h1.pagetitle{font-size:30px; font-weight:700; letter-spacing:-0.75px; margin:0;}
+p.pagesub{color:var(--muted); font-size:14px; margin:4px 0 0 0;}
+h2.sectiontitle{font-size:18px; font-weight:600; margin:0 0 16px 0; display:flex; align-items:center; gap:8px;}
+h2.sectiontitle svg{width:20px;height:20px;color:var(--gold-accent);}
+.section{margin-bottom:32px;}
+.section.tight{margin-bottom:24px;}
+
+/* KPI cards */
+.kpi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media(max-width:640px){.kpi-grid{grid-template-columns:1fr;}}
+.kpi-card{border-radius:12px; padding:20px;}
+.kpi-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+.kpi-top span{font-size:14px; color:var(--muted);}
+.kpi-top svg{width:16px;height:16px; color:var(--gold-accent);}
+.kpi-value{font-size:30px; font-weight:700; font-family:'DM Mono','DM Sans',monospace;}
+
+/* Quick access */
+.quick-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+@media(max-width:640px){.quick-grid{grid-template-columns:1fr 1fr;}}
+.quick-card{
+  border-radius:12px; padding:16px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;
+}
+.quick-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.quick-icon svg{width:20px;height:20px;}
+.quick-label{font-size:12px; font-weight:500; color:var(--muted);}
+
+/* Empty state */
+.empty-card{border-radius:12px; padding:32px; text-align:center;}
+.empty-card svg{width:32px;height:32px; color:var(--muted); margin-bottom:12px;}
+.empty-card p{color:var(--muted); font-size:14px; margin:0;}
+.gold-link-btn{
+  display:inline-block; margin-top:16px; padding:8px 16px; border-radius:10px; background:var(--gold);
+  color:#000; font-size:14px; font-weight:600;
+}
+.gold-link-btn:hover{background:var(--gold-light);}
+
+/* Post item */
+.post-item{border-radius:12px; padding:14px 16px; margin-bottom:10px;}
+.post-item .row1{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;}
+.tagset{display:flex; gap:6px; flex-wrap:wrap;}
+.pill{padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600;}
+.pill-gold{background:rgba(201,168,76,0.1); color:var(--gold-accent);}
+.snippet{font-size:12.5px; color:#444; line-height:1.5;}
+.delete-btn{background:rgba(220,53,69,0.08); border:1px solid rgba(220,53,69,0.3); color:#c0303f; border-radius:8px; padding:5px 10px; font-size:11px; font-weight:600;}
+
+/* Platform pill icon backgrounds handled inline via style attr */
+
+/* Generator */
+.field-block{margin-bottom:24px;}
+.field-label{font-size:14px; font-weight:500; color:var(--muted); display:block; margin-bottom:12px;}
+.row-gap{display:flex; gap:8px; flex-wrap:wrap;}
+.platform-btn{
+  display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:10px; font-size:14px; font-weight:500;
+  color:var(--muted); border:1px solid transparent; background:transparent;
+}
+.platform-btn:hover{color:var(--ink); background:rgba(0,0,0,0.04);}
+.platform-btn svg{width:16px;height:16px;}
+.type-btn{
+  display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; font-size:14px;
+  color:var(--muted); border:1px solid transparent; background:transparent;
+}
+.type-btn:hover{color:var(--ink); background:rgba(0,0,0,0.04);}
+.type-btn svg{width:16px;height:16px;}
+.type-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+@media(max-width:640px){.type-grid{grid-template-columns:1fr 1fr;}}
+.pill-btn{
+  padding:6px 14px; border-radius:9999px; font-size:14px; color:var(--muted); border:1px solid rgba(0,0,0,0.08); background:transparent;
+}
+.pill-btn:hover{color:var(--ink);}
+.pill-btn.active{background:rgba(201,168,76,0.1); color:var(--gold-accent); border-color:rgba(201,168,76,0.3);}
+
+textarea, input[type=text], input[type=password]{
+  width:100%; padding:12px 16px; border-radius:10px; background:#F5F3EF; border:1px solid rgba(0,0,0,0.08);
+  color:var(--ink); font-family:inherit; font-size:14px; resize:none;
+}
+textarea:focus, input:focus{outline:none; border-color:rgba(201,168,76,0.5); box-shadow:0 0 0 3px rgba(201,168,76,0.15);}
+textarea::placeholder{color:var(--muted);}
+
+.toggle-row{display:flex; align-items:center; gap:12px; margin-bottom:24px;}
+.toggle-switch{width:40px; height:24px; border-radius:9999px; position:relative; background:#F5F3EF; border:1px solid rgba(0,0,0,0.1); flex:none; padding:0;}
+.toggle-switch .knob{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:all .2s; box-shadow:0 1px 2px rgba(0,0,0,0.2);}
+.toggle-switch.on{background:var(--gold);}
+.toggle-switch.on .knob{left:19px;}
+.toggle-row span{font-size:14px; color:var(--muted);}
+
+.gold-btn{
+  width:100%; padding:14px 0; border-radius:12px; background:var(--gold); color:#000; font-weight:700; font-size:16px;
+  border:none; display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 6px 22px rgba(201,168,76,0.35), 0 0 44px rgba(201,168,76,0.14);
+}
+.gold-btn:hover{background:var(--gold-light);}
+.gold-btn:disabled{opacity:.5; cursor:not-allowed;}
+.gold-btn svg{width:20px;height:20px;}
+
+.output-box{position:relative; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:18px; margin-top:16px;
+  white-space:pre-wrap; font-size:13.5px; line-height:1.65; max-height:420px; overflow-y:auto;}
+.output-actions{display:flex; gap:8px; margin-top:12px;}
+.btn-outline{padding:8px 16px; border-radius:10px; border:1px solid rgba(201,168,76,0.4); background:transparent; color:var(--gold-accent); font-size:13px; font-weight:600;}
+.btn-outline:hover{background:rgba(201,168,76,0.08);}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,0.25);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.notice-red{background:rgba(220,53,69,0.08); border:1px solid rgba(220,53,69,0.3); color:#a8202d; border-radius:10px; padding:12px 16px; font-size:13px; font-weight:600; margin-bottom:24px;}
+
+/* Strategie */
+.pillar-grid{display:grid; grid-template-columns:1fr; gap:12px;}
+.pillar-card{border-radius:10px; padding:16px; display:flex; align-items:flex-start; gap:12px;}
+.pillar-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;}
+.pillar-icon svg{width:16px;height:16px;}
+.pillar-name-row{display:flex; align-items:center; gap:8px;}
+.pillar-name-row span.name{font-size:14px; font-weight:600;}
+.pillar-name-row span.pct{font-size:12px; font-family:monospace; color:var(--gold-accent);}
+.pillar-desc{font-size:12px; color:var(--muted); margin-top:2px;}
+.donut-wrap{border-radius:12px; padding:16px; display:flex; align-items:center; justify-content:center; min-height:280px;}
+.donut{width:180px;height:180px;border-radius:50%; position:relative; display:flex;align-items:center;justify-content:center;}
+.donut::after{content:'';position:absolute;inset:26px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.donut-center{position:relative;z-index:1;text-align:center;}
+.donut-center .big{font-size:22px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;}
+.donut-center .small{font-size:11px;color:var(--muted);}
+.strategie-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+@media(max-width:900px){.strategie-cols{grid-template-columns:1fr;}}
+
+.platform-block{border-radius:12px; padding:20px; margin-bottom:16px;}
+.pb-header{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+.pb-header svg{width:20px;height:20px;}
+.pb-header h3{font-size:15px; font-weight:600; margin:0;}
+.pb-days{margin-left:auto; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:4px;}
+.pb-days svg{width:12px;height:12px;}
+.pb-ton{font-size:14px; color:var(--muted); margin:0 0 12px 0;}
+.pb-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; font-size:13px; margin-bottom:12px;}
+@media(max-width:700px){.pb-grid{grid-template-columns:1fr;}}
+.pb-grid .h{font-size:11px; font-weight:600; color:var(--muted); margin-bottom:4px; display:flex; align-items:center; gap:4px;}
+.pb-grid .h svg{width:12px;height:12px;}
+.pb-grid p{font-size:11px; margin:2px 0;}
+.pb-hash{font-size:11px; color:var(--muted); margin:0;}
+
+table.wk-table{width:100%; border-collapse:collapse; font-size:13px;}
+table.wk-table th{text-align:left; padding:12px 16px; font-size:11px; font-weight:600; color:var(--muted); border-bottom:1px solid rgba(0,0,0,0.08);}
+table.wk-table td{padding:10px 16px; font-size:12px; border-bottom:1px solid rgba(0,0,0,0.06);}
+table.wk-table tr:hover td{background:rgba(0,0,0,0.03);}
+.wk-tag{font-weight:600; color:var(--gold-accent);}
+.table-card{border-radius:12px; overflow:hidden;}
+
+/* Kalender */
+.cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+.cal-nav button{padding:8px; border-radius:10px; background:transparent; border:none;}
+.cal-nav button:hover{background:rgba(0,0,0,0.04);}
+.cal-nav button svg{width:20px;height:20px;}
+.cal-nav h2{font-size:18px; font-weight:600; margin:0; text-transform:capitalize;}
+.cal-card{border-radius:12px; overflow:hidden;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr);}
+.cal-daylabel{padding:8px 0; text-align:center; font-size:11px; font-weight:600; color:var(--muted); border-bottom:1px solid rgba(0,0,0,0.06);}
+.cal-cell{min-height:80px; padding:6px; border-bottom:1px solid rgba(0,0,0,0.06); border-right:1px solid rgba(0,0,0,0.06);}
+.cal-cell.empty{border:none;}
+.cal-daynum{font-size:11px; font-family:monospace; color:var(--muted);}
+.cal-post{font-size:10px; margin-top:3px; display:flex; align-items:center; gap:4px;}
+.cal-dot{width:6px;height:6px;border-radius:50%;flex:none;}
+.cal-legend{display:flex; gap:16px; font-size:12px; color:var(--muted); margin-top:16px;}
+.cal-legend span{display:flex; align-items:center; gap:6px;}
+.cal-legend .dot{width:8px;height:8px;border-radius:50%;}
+
+/* Settings */
+.settings-hint{font-size:11.5px; color:var(--muted); margin-top:6px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+//////////////////// ICONS (exact lucide markup) ////////////////////
+const ICONS = {
+  dashboard: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>',
+  pen: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"></path><path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"></path><path d="m2.3 2.3 7.286 7.286"></path><circle cx="11" cy="11" r="2"></circle></svg>',
+  calendarDays: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>',
+  calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>',
+  target: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>',
+  logout: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>',
+  settings: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+  linkedin: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>',
+  instagram: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>',
+  tiktok: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path><rect x="2" y="6" width="14" height="12" rx="2"></rect></svg>',
+  sparkles: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg>',
+  trendingUp: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>',
+  clock: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+  bookOpen: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>',
+  users: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+  messageSquare: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>',
+  award: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg>',
+  heart: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>',
+  megaphone: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>',
+  checkGood: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg>',
+  xCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>',
+  chevronLeft: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>',
+  chevronRight: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>',
+  menu: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>',
+  x: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>',
+};
+function icon(name, sizeClass){ return ICONS[name] ? ICONS[name].replace('<svg ', `<svg class="${sizeClass||''}" `) : ''; }
+
+//////////////////// STATE ////////////////////
+const DEFAULT_VAULT_CONTEXT = `ZYNTEVO ist eine KI-Automatisierungs-Agentur für deutsche KMU (Handwerker, Immobilienmakler, Steuerberater, Finanz-/Versicherungsmakler). Gründer: Jan Wichmann, vorher mehrjährige Erfahrung im Vertrieb und in der Führung (u.a. Filialleiter LIDL, Shopleiter Telekom-Partner).
+
+Angebot: individuelle KI-Automatisierungen (Setup einmalig 800-2.500€ je nach Komplexität, plus Retainer 97-197€/Monat für laufende Pflege). Positionierung: konkrete, greifbare Ergebnisse statt KI-Buzzwords, Vertrauen vor Abschluss aufbauen. Geld-zurück-Garantie statt Gratis-Testphase.
+
+Aktueller Referenzkunde: ein mittelständisches Apotheken-Unternehmen, dort wird gerade eine Aufgabenverwaltung für Mitarbeiter sowie Reporting-/Datenautomatisierung umgesetzt.
+
+Ton: auf LinkedIn Sie-Form, professionell mit persönlichem Einschlag, auf Instagram/TikTok Duzen. Nie erkennbar nach KI klingen: keine Gedankenstriche, keine KI-Floskeln, menschlicher und direkter Ton.`;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem('zyntevo_social_agent');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { settings:{ apiKey:'', vaultContext: DEFAULT_VAULT_CONTEXT }, posts:[] };
+}
+let state = loadState();
+function saveState(){ localStorage.setItem('zyntevo_social_agent', JSON.stringify(state)); }
+
+let activeTab = 'dashboard';
+let loading = false;
+let errorMsg = '';
+let sidebarOpen = false;
+
+let genPlatform = 'linkedin';
+let genType = null;
+let genAudience = 'Allgemein';
+let genTopic = '';
+let genUseVault = true;
+let genOutput = '';
+
+let wpAudience = 'Allgemein';
+let wpOutput = null;
+
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+
+//////////////////// DATA ////////////////////
+const PLATFORM_COLOR = { linkedin:'#0A66C2', instagram:'#E1306C', tiktok:'#FF0050' };
+const PLATFORM_ICON = { linkedin:'linkedin', instagram:'instagram', tiktok:'tiktok' };
+const PLATFORM_LABEL = { linkedin:'LinkedIn', instagram:'Instagram', tiktok:'TikTok' };
+
+const PILLARS = [
+  {name:'Bildung', pct:40, desc:'KI-Prozesse erklärt, angewendet auf Zielbranchen', color:'#C9A84C', icon:'bookOpen'},
+  {name:'Beweis', pct:30, desc:'Kundenergebnisse, Fallstudien, konkrete Zahlen', color:'#0A66C2', icon:'award'},
+  {name:'Persönlich', pct:20, desc:'Gründeralltag, Learnings, Fehler', color:'#E1306C', icon:'heart'},
+  {name:'Angebot', pct:10, desc:'Hinweise auf Erstgespräch, Self-Service-Tools', color:'#FF0050', icon:'megaphone'}
+];
+
+const CONTENT_TYPES = {
+  linkedin: [{n:'Gründer-Einblick', icon:'bookOpen'},{n:'Fallstudie', icon:'users'},{n:'Bildungspost', icon:'messageSquare'}],
+  instagram: [{n:'Carousel (Vorher/Nachher)', icon:'instagram'},{n:'Persönlicher Einblick', icon:'heart'},{n:'Reel', icon:'tiktok'},{n:'Story', icon:'messageSquare'}],
+  tiktok: [{n:'Hook-Video', icon:'sparkles'},{n:'Tutorial', icon:'bookOpen'},{n:'Storytelling', icon:'messageSquare'},{n:'POV-Format', icon:'users'},{n:'Reaktion', icon:'heart'}]
+};
+
+const AUDIENCES = ['Handwerker','Immobilienmakler','Steuerberater','Allgemein'];
+
+const PLATFORM_RULES = {
+  linkedin:{ label:'LinkedIn', color:'#0A66C2', days:'Mo, Mi, Fr', ton:'Professionell mit persönlichem Einschlag. Sie-Form.',
+    formate:['Gründer-Einblick (Mo)','Fallstudie (Mi)','Bildungspost (Fr)'],
+    dos:['Konkrete Zahlen','Kurze Absätze','Echte Situationen','Starke erste Zeile'],
+    donts:['Gedankenstriche','Generische KI-Aussagen','Eigenlob ohne Substanz'], hashtags:'Max. 3-5' },
+  instagram:{ label:'Instagram', color:'#E1306C', days:'Di, Do, Sa + tägliche Stories', ton:'Nahbar, visuell stark, direkt. Duzen okay.',
+    formate:['Carousel: Vorher/Nachher (Di)','Persönlicher Einblick (Do)','Reel (Sa)','Stories täglich'],
+    dos:['Gold + Weiß Branding','Klare Typografie','Echte Situationen'],
+    donts:['Stock-Photo-Look','Generischer Content'], hashtags:'10-15' },
+  tiktok:{ label:'TikTok', color:'#FF0050', days:'Mo, Di, Do, Fr, Sa', ton:'Locker, direkt, schnell auf den Punkt. Duzen.',
+    formate:['Hook-Video','Tutorial','Storytelling','POV-Format','Reaktionen'],
+    dos:['Erste Sekunde = Zahl oder Frage','Untertitel immer','Vertikales Format'],
+    donts:['Langsamer Einstieg','Ohne Hook starten'], hashtags:'3-5' }
+};
+
+const WEEK_PATTERN = [
+  {tag:'Mo', linkedin:'Gründer-Einblick', instagram:'Story: Umfrage', tiktok:'Bildung'},
+  {tag:'Di', linkedin:'—', instagram:'Carousel', tiktok:'Hook-Video'},
+  {tag:'Mi', linkedin:'Fallstudie', instagram:'Story: BTS', tiktok:'—'},
+  {tag:'Do', linkedin:'—', instagram:'Persönlich', tiktok:'Tutorial'},
+  {tag:'Fr', linkedin:'Bildungspost', instagram:'Story: Frage', tiktok:'Storytelling'},
+  {tag:'Sa', linkedin:'—', instagram:'Reel', tiktok:'POV-Format'},
+  {tag:'So', linkedin:'—', instagram:'Story: Rückblick', tiktok:'—'}
+];
+
+//////////////////// HELPERS ////////////////////
+function uid(){ return 'p'+Date.now()+Math.random().toString(36).slice(2,8); }
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function hexAlpha(hex, alphaHex){ return hex + alphaHex; }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function startOfWeek(d){ const dt=new Date(d); const day=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0); return dt; }
+function isSameWeek(dateStr){ if(!dateStr) return false; const d=new Date(dateStr); const now=new Date(); const s=startOfWeek(now); const e=new Date(s); e.setDate(e.getDate()+7); return d>=s && d<e; }
+function isSameMonth(dateStr){ if(!dateStr) return false; const d=new Date(dateStr); const now=new Date(); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); }
+function copyToClipboard(text, btnEl){ navigator.clipboard.writeText(text).then(()=>{ if(btnEl){const old=btnEl.textContent; btnEl.textContent='Kopiert!'; setTimeout(()=>{btnEl.textContent=old;},1500);} }); }
+
+//////////////////// API CALL ////////////////////
+async function callClaude(systemPrompt, userPrompt, maxTokens){
+  if(!state.settings.apiKey){ throw new Error('NO_KEY'); }
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-key': state.settings.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: maxTokens||1200, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
+  });
+  if(!res.ok){ const t = await res.text(); throw new Error('API_ERROR: '+t); }
+  const data = await res.json();
+  return data.content && data.content[0] ? data.content[0].text : '';
+}
+
+function buildSystemPrompt(platform){
+  const rules = PLATFORM_RULES[platform];
+  let vaultBlock = '';
+  if(genUseVault && state.settings.vaultContext){ vaultBlock = `\n\nUnternehmens-Kontext (ZYNTEVO):\n${state.settings.vaultContext}`; }
+  return `Du bist der Social-Media-Content-Assistent für ZYNTEVO, eine KI-Automatisierungs-Agentur für deutsche KMU.
+
+Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse für Handwerker, Makler und Berater.
+Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
+
+Plattform: ${rules.label}
+Ton: ${rules.ton}
+Dos: ${rules.dos.join(', ')}
+Don'ts: ${rules.donts.join(', ')}
+Hashtags: ${rules.hashtags}${vaultBlock}
+
+Schreibe ausschließlich den fertigen, sofort postbaren Content-Text. Keine Einleitung, keine Erklärung, keine Meta-Kommentare, keine Anführungszeichen um den ganzen Text.`;
+}
+
+//////////////////// ACTIONS ////////////////////
+function setTab(t){ activeTab=t; errorMsg=''; sidebarOpen=false; render(); window.scrollTo(0,0); }
+function quickAccess(platform, type){ genPlatform=platform; genType=type || CONTENT_TYPES[platform][0].n; genOutput=''; setTab('generator'); }
+function setGenPlatform(p){ genPlatform=p; genType=CONTENT_TYPES[p][0].n; render(); }
+function setGenType(t){ genType=t; render(); }
+function setGenAudience(a){ genAudience=a; render(); }
+function toggleGenVault(){ genUseVault=!genUseVault; render(); }
+function toggleSidebar(){ sidebarOpen=!sidebarOpen; render(); }
+
+async function generateContent(){
+  if(!state.settings.apiKey){ errorMsg='Bitte zuerst einen Anthropic API Key in den Einstellungen eintragen.'; setTab('einstellungen'); return; }
+  if(!genType) genType = CONTENT_TYPES[genPlatform][0].n;
+  loading=true; errorMsg=''; render();
+  try{
+    const sys = buildSystemPrompt(genPlatform);
+    const userPrompt = `Content-Typ: ${genType}\nZielgruppe: ${genAudience}\nThema/Kontext: ${genTopic || '(kein spezifisches Thema, wähle etwas Passendes zur Content-Säule und zum Content-Typ)'}`;
+    genOutput = (await callClaude(sys, userPrompt, 900)).trim();
+  }catch(e){
+    errorMsg = e.message==='NO_KEY' ? 'Bitte zuerst einen Anthropic API Key in den Einstellungen eintragen.' : ('Fehler beim Generieren: '+e.message);
+  }
+  loading=false; render();
+}
+
+function savePost(status){
+  if(!genOutput) return;
+  state.posts.unshift({ id:uid(), platform:genPlatform, contentType:genType, audience:genAudience, topic:genTopic, content:genOutput, createdAt:todayISO(), scheduledDate: status==='geplant'?todayISO():null, status:status });
+  saveState(); genOutput=''; genTopic=''; setTab('dashboard');
+}
+function deletePost(id){ state.posts = state.posts.filter(p=>p.id!==id); saveState(); render(); }
+
+async function generateWochenplan(){
+  if(!state.settings.apiKey){ errorMsg='Bitte zuerst einen Anthropic API Key in den Einstellungen eintragen.'; setTab('einstellungen'); return; }
+  loading=true; errorMsg=''; wpOutput=null; render();
+  try{
+    let vaultBlock = state.settings.vaultContext ? `\n\nUnternehmens-Kontext (ZYNTEVO):\n${state.settings.vaultContext}` : '';
+    const sys = `Du bist der Social-Media-Content-Assistent für ZYNTEVO, eine KI-Automatisierungs-Agentur für deutsche KMU.
+Positionierung: KI-Automatisierung ohne Buzzwords, konkrete Ergebnisse. Content-Säulen: Bildung 40%, Beweis 30%, Persönlich 20%, Angebot 10%.
+Wochenmuster: Mo=LinkedIn Gründer-Einblick + Instagram Story, Di=Instagram Carousel + TikTok Hook-Video, Mi=LinkedIn Fallstudie + Instagram Story, Do=Instagram Persönlich + TikTok Tutorial, Fr=LinkedIn Bildungspost + Instagram Story + TikTok Storytelling, Sa=Instagram Reel + TikTok POV-Format, So=Instagram Story Rückblick.
+LinkedIn: Sie-Form, professionell, keine Gedankenstriche, keine KI-Floskeln, max 3-5 Hashtags.
+Instagram/TikTok: Duzen, nahbar/direkt.${vaultBlock}
+
+Gib die Antwort AUSSCHLIESSLICH als valides JSON-Array zurück, keine Erklärung davor oder danach. Format:
+[{"tag":"Mo","platform":"linkedin","type":"Gründer-Einblick","content":"..."}, ...]
+Erzeuge für jeden Tag genau die Posts, die im Wochenmuster für diesen Tag vorgesehen sind (kann 0, 1 oder 2 Einträge pro Tag sein, "—" bedeutet kein Post auf der Plattform).`;
+    const userPrompt = `Zielgruppe für diese Woche: ${wpAudience}. Erstelle den kompletten 7-Tage-Plan.`;
+    const result = await callClaude(sys, userPrompt, 3000);
+    let jsonText = result.trim();
+    const match = jsonText.match(/\[[\s\S]*\]/);
+    if(match) jsonText = match[0];
+    wpOutput = JSON.parse(jsonText);
+  }catch(e){
+    errorMsg = e.message==='NO_KEY' ? 'Bitte zuerst einen Anthropic API Key in den Einstellungen eintragen.' : ('Fehler beim Generieren: '+e.message);
+  }
+  loading=false; render();
+}
+
+function saveWochenplanToCalendar(){
+  if(!wpOutput) return;
+  const monday = startOfWeek(new Date());
+  const dayIndex = {Mo:0,Di:1,Mi:2,Do:3,Fr:4,Sa:5,So:6};
+  wpOutput.forEach(item=>{
+    const d = new Date(monday); d.setDate(d.getDate() + (dayIndex[item.tag]||0));
+    state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:wpAudience, topic:'', content:item.content, createdAt:todayISO(), scheduledDate:d.toISOString().slice(0,10), status:'geplant' });
+  });
+  saveState(); wpOutput=null; setTab('kalender');
+}
+
+function saveSettings(key, val){ state.settings[key]=val; saveState(); }
+function calPrevMonth(){ calMonth--; if(calMonth<0){calMonth=11; calYear--;} render(); }
+function calNextMonth(){ calMonth++; if(calMonth>11){calMonth=0; calYear++;} render(); }
+
+//////////////////// RENDER ////////////////////
+function navItem(id, label, iconName){
+  const active = activeTab===id;
+  return `<a class="nav-item ${active?'active':''}" onclick="setTab('${id}')" style="color:${active?'var(--gold-accent)':''}">${icon(iconName)}${label}</a>`;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <button class="menu-toggle glass-card" onclick="toggleSidebar()">${icon('menu','w-5-h-5')}</button>
+    <div class="sidebar ${sidebarOpen?'open':''}">
+      <div class="sidebar-header">
+        <span class="sidebar-logo font-display gold-text">ZYNTEVO</span>
+        <button class="sidebar-close" onclick="toggleSidebar()">${icon('x')}</button>
+      </div>
+      <nav class="sidebar-nav">
+        ${navItem('dashboard','Dashboard','dashboard')}
+        ${navItem('generator','Content Generator','pen')}
+        ${navItem('wochenplan','Wochenplan','calendarDays')}
+        ${navItem('kalender','Kalender','calendar')}
+        ${navItem('strategie','Strategie','target')}
+        ${navItem('einstellungen','Einstellungen','settings')}
+      </nav>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="alert('Abmelden ist in dieser lokalen Version nicht nötig, es gibt keinen Server-Login.')">${icon('logout')}Abmelden</a>
+      </div>
+    </div>
+    <div class="sidebar-overlay ${sidebarOpen?'show':''}" onclick="toggleSidebar()"></div>
+    <main>
+      <div class="page-inner ${activeTab==='generator'?'narrow':''}">
+        ${errorMsg ? `<div class="notice-red">${esc(errorMsg)}</div>` : ''}
+        ${activeTab==='dashboard' ? renderDashboard() : ''}
+        ${activeTab==='generator' ? renderGenerator() : ''}
+        ${activeTab==='wochenplan' ? renderWochenplan() : ''}
+        ${activeTab==='kalender' ? renderKalender() : ''}
+        ${activeTab==='strategie' ? renderStrategie() : ''}
+        ${activeTab==='einstellungen' ? renderEinstellungen() : ''}
+      </div>
+    </main>
+  `;
+}
+
+function renderDashboard(){
+  const week = state.posts.filter(p=>isSameWeek(p.scheduledDate) || (p.status!=='entwurf' && isSameWeek(p.createdAt)));
+  const month = state.posts.filter(p=>isSameMonth(p.scheduledDate) || (p.status!=='entwurf' && isSameMonth(p.createdAt)));
+  const geplant = state.posts.filter(p=>p.status==='geplant');
+  const thisWeekPlanned = state.posts.filter(p=>p.scheduledDate && isSameWeek(p.scheduledDate)).sort((a,b)=>a.scheduledDate.localeCompare(b.scheduledDate));
+  const hour = new Date().getHours();
+  const greet = hour<12?'Guten Morgen':hour<18?'Guten Tag':'Guten Abend';
+
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display">${greet}, <span class="gold-text">Jan Wichmann</span></h1>
+      <p class="pagesub">Dein ZYNTEVO Content-Cockpit</p>
+    </div>
+    <div class="section kpi-grid">
+      <div class="glass-card kpi-card"><div class="kpi-top"><span>Posts diese Woche</span>${icon('pen')}</div><div class="kpi-value gold-text">${week.length}</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-top"><span>Posts diesen Monat</span>${icon('trendingUp')}</div><div class="kpi-value gold-text">${month.length}</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-top"><span>Geplante Posts</span>${icon('clock')}</div><div class="kpi-value gold-text">${geplant.length}</div></div>
+    </div>
+    <div class="section">
+      <h2 class="sectiontitle">${icon('sparkles')}Schnellzugriff</h2>
+      <div class="quick-grid">
+        <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('linkedin','Gründer-Einblick')">
+          <div class="quick-icon" style="background-color:${hexAlpha('#0A66C2','15')}"><span style="color:#0A66C2">${icon('linkedin')}</span></div>
+          <span class="quick-label">LinkedIn-Post</span>
+        </a>
+        <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('instagram','Carousel (Vorher/Nachher)')">
+          <div class="quick-icon" style="background-color:${hexAlpha('#E1306C','15')}"><span style="color:#E1306C">${icon('instagram')}</span></div>
+          <span class="quick-label">Instagram Carousel</span>
+        </a>
+        <a class="glass-card glass-card-hover quick-card" onclick="quickAccess('tiktok','Hook-Video')">
+          <div class="quick-icon" style="background-color:${hexAlpha('#FF0050','15')}"><span style="color:#FF0050">${icon('tiktok')}</span></div>
+          <span class="quick-label">TikTok-Skript</span>
+        </a>
+        <a class="glass-card glass-card-hover quick-card" onclick="setTab('wochenplan')">
+          <div class="quick-icon" style="background-color:${hexAlpha('#C9A84C','15')}"><span style="color:#C9A84C">${icon('calendarDays')}</span></div>
+          <span class="quick-label">Wochenplan generieren</span>
+        </a>
+      </div>
+    </div>
+    <div class="section">
+      <h2 class="sectiontitle">${icon('calendarDays')}Diese Woche geplant</h2>
+      ${thisWeekPlanned.length===0 ? `
+        <div class="glass-card empty-card">
+          ${icon('calendarDays')}
+          <p>Noch keine Posts geplant.</p>
+          <a class="gold-link-btn" onclick="setTab('wochenplan')">Wochenplan generieren</a>
+        </div>
+      ` : thisWeekPlanned.map(renderPostItem).join('')}
+    </div>
+  `;
+}
+
+function renderPostItem(p){
+  const color = PLATFORM_COLOR[p.platform];
+  return `
+    <div class="glass-card post-item">
+      <div class="row1">
+        <div class="tagset">
+          <span class="pill" style="background:${hexAlpha(color,'1A')};color:${color}">${PLATFORM_LABEL[p.platform]}</span>
+          <span class="pill pill-gold">${esc(p.contentType||'')}</span>
+          ${p.scheduledDate ? `<span class="pill pill-gold">${p.scheduledDate}</span>` : ''}
+        </div>
+        <button class="delete-btn" onclick="deletePost('${p.id}')">Löschen</button>
+      </div>
+      <div class="snippet">${esc((p.content||'').slice(0,180))}${(p.content||'').length>180?'…':''}</div>
+    </div>
+  `;
+}
+
+function renderGenerator(){
+  const types = CONTENT_TYPES[genPlatform];
+  if(!genType) genType = types[0].n;
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display"><span class="gold-text">Content</span> Generator</h1>
+      <p class="pagesub">Erstelle plattformspezifische Inhalte mit KI</p>
+    </div>
+
+    <div class="field-block row-gap">
+      ${['linkedin','instagram','tiktok'].map(p=>{
+        const active = genPlatform===p; const color = PLATFORM_COLOR[p];
+        return `<button class="platform-btn ${active?'glass-card':''}" style="${active?`border-color:${hexAlpha(color,'40')};background-color:${hexAlpha(color,'10')}`:''}" onclick="setGenPlatform('${p}')"><span style="color:${color}">${icon(PLATFORM_ICON[p])}</span>${PLATFORM_LABEL[p]}</button>`;
+      }).join('')}
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Content-Typ</label>
+      <div class="type-grid">
+        ${types.map(t=>{
+          const active = genType===t.n;
+          return `<button class="type-btn ${active?'glass-card':''}" style="${active?'border-color:rgba(201,168,76,0.3);color:var(--gold-accent)':''}" onclick="setGenType(${JSON.stringify(t.n).replace(/"/g,'&quot;')})">${icon(t.icon)}${t.n}</button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Zielgruppe</label>
+      <div class="row-gap">
+        ${AUDIENCES.map(a=>`<button class="pill-btn ${genAudience===a?'active':''}" onclick="setGenAudience('${a}')">${a}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="field-block">
+      <label class="field-label">Thema / Kontext (optional)</label>
+      <textarea rows="3" placeholder="z.B. 'Ich habe einem Handwerker geholfen, 3h pro Woche zu sparen'" oninput="genTopic=this.value">${esc(genTopic)}</textarea>
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-switch ${genUseVault?'on':''}" onclick="toggleGenVault()"><span class="knob"></span></button>
+      <span>Unternehmens-Kontext einbeziehen (aus Einstellungen)</span>
+    </div>
+
+    <button class="gold-btn" ${loading?'disabled':''} onclick="generateContent()">
+      ${loading?`<span class="spinner"></span> Generiert…`:`${icon('sparkles')} Content generieren`}
+    </button>
+
+    ${genOutput ? `
+      <div class="output-box">${esc(genOutput)}</div>
+      <div class="output-actions">
+        <button class="btn-outline" onclick="copyToClipboard(${JSON.stringify(genOutput)}, this)">Kopieren</button>
+        <button class="btn-outline" onclick="savePost('entwurf')">Als Entwurf speichern</button>
+        <button class="btn-outline" onclick="savePost('geplant')" style="background:var(--gold);color:#000;border-color:var(--gold);">Für heute einplanen</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderWochenplan(){
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display">Wochenplan</h1>
+      <p class="pagesub">Generiere einen kompletten 7-Tage Content-Plan für alle Plattformen</p>
+    </div>
+    <div class="field-block">
+      <label class="field-label">Zielgruppe</label>
+      <div class="row-gap">
+        ${AUDIENCES.map(a=>`<button class="pill-btn ${wpAudience===a?'active':''}" onclick="wpAudience='${a}';render()">${a}</button>`).join('')}
+      </div>
+    </div>
+    <button class="gold-btn" ${loading?'disabled':''} onclick="generateWochenplan()">
+      ${loading?`<span class="spinner"></span> Generiert…`:`${icon('sparkles')} Wochenplan generieren`}
+    </button>
+    ${wpOutput ? `
+      <div class="section" style="margin-top:32px;">
+        <h2 class="sectiontitle">${icon('calendarDays')}Entwurf für diese Woche</h2>
+        ${wpOutput.map(item=>{
+          const color = PLATFORM_COLOR[item.platform] || '#888';
+          return `
+          <div class="glass-card post-item">
+            <div class="row1">
+              <div class="tagset">
+                <span class="pill pill-gold">${item.tag}</span>
+                <span class="pill" style="background:${hexAlpha(color,'1A')};color:${color}">${PLATFORM_LABEL[item.platform]||item.platform}</span>
+                <span class="pill pill-gold">${esc(item.type||'')}</span>
+              </div>
+            </div>
+            <div class="snippet">${esc(item.content||'')}</div>
+          </div>`;
+        }).join('')}
+        <button class="gold-btn" style="margin-top:8px;" onclick="saveWochenplanToCalendar()">Ganze Woche in den Kalender übernehmen</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderKalender(){
+  const first = new Date(calYear, calMonth, 1);
+  const numDays = new Date(calYear, calMonth+1, 0).getDate();
+  const startOffset = (first.getDay()+6)%7;
+  const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  let cells = '';
+  for(let i=0;i<startOffset;i++){ cells += `<div class="cal-cell empty"></div>`; }
+  for(let day=1; day<=numDays; day++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayPosts = state.posts.filter(p=>p.scheduledDate===dateStr);
+    cells += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${dayPosts.map(p=>`<div class="cal-post"><span class="cal-dot" style="background:${PLATFORM_COLOR[p.platform]}"></span>${PLATFORM_LABEL[p.platform]}</div>`).join('')}</div>`;
+  }
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display"><span class="gold-text">Content</span> Kalender</h1>
+      <p class="pagesub">Übersicht aller erstellten und geplanten Posts</p>
+    </div>
+    <div class="cal-nav">
+      <button onclick="calPrevMonth()">${icon('chevronLeft')}</button>
+      <h2>${monthNames[calMonth]} ${calYear}</h2>
+      <button onclick="calNextMonth()">${icon('chevronRight')}</button>
+    </div>
+    <div class="glass-card cal-card">
+      <div class="cal-grid">
+        ${['Mo','Di','Mi','Do','Fr','Sa','So'].map(d=>`<div class="cal-daylabel">${d}</div>`).join('')}
+        ${cells}
+      </div>
+    </div>
+    <div class="cal-legend">
+      <span><span class="dot" style="background:#0A66C2"></span>LinkedIn</span>
+      <span><span class="dot" style="background:#E1306C"></span>Instagram</span>
+      <span><span class="dot" style="background:#FF0050"></span>TikTok</span>
+    </div>
+  `;
+}
+
+function donutGradient(){
+  let acc = 0; const stops = [];
+  PILLARS.forEach(p=>{ stops.push(`${p.color} ${acc}% ${acc+p.pct}%`); acc += p.pct; });
+  return `conic-gradient(${stops.join(',')})`;
+}
+
+function renderStrategie(){
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display"><span class="gold-text">Social Media</span> Strategie</h1>
+      <p class="pagesub">Positionierung: KI-Automatisierung ohne Buzzwords. Konkrete Ergebnisse für Handwerker, Makler und Berater.</p>
+    </div>
+    <div class="section">
+      <h2 class="sectiontitle">${icon('target')}Content-Säulen</h2>
+      <div class="strategie-cols">
+        <div class="pillar-grid">
+          ${PILLARS.map(p=>`
+            <div class="glass-card pillar-card">
+              <div class="pillar-icon" style="background-color:${hexAlpha(p.color,'15')}"><span style="color:${p.color}">${icon(p.icon)}</span></div>
+              <div>
+                <div class="pillar-name-row"><span class="name">${p.name}</span><span class="pct">${p.pct}%</span></div>
+                <div class="pillar-desc">${p.desc}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="glass-card donut-wrap">
+          <div class="donut" style="background:${donutGradient()}">
+            <div class="donut-center"><div class="big gold-text">100%</div><div class="small">Content-Mix</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h2 class="sectiontitle" style="margin-bottom:16px;">Plattform-Regeln</h2>
+      ${Object.keys(PLATFORM_RULES).map(key=>{
+        const r = PLATFORM_RULES[key];
+        return `
+          <div class="glass-card platform-block">
+            <div class="pb-header">
+              <span style="color:${r.color}">${icon(PLATFORM_ICON[key])}</span>
+              <h3>${r.label}</h3>
+              <span class="pb-days">${icon('clock')} ${r.days}</span>
+            </div>
+            <p class="pb-ton">${r.ton}</p>
+            <div class="pb-grid">
+              <div><div class="h">Formate</div>${r.formate.map(f=>`<p>${f}</p>`).join('')}</div>
+              <div><div class="h" style="color:#1c7c3a">${icon('checkGood')} Dos</div>${r.dos.map(d=>`<p>${d}</p>`).join('')}</div>
+              <div><div class="h" style="color:#c0303f">${icon('xCircle')} Don'ts</div>${r.donts.map(d=>`<p>${d}</p>`).join('')}</div>
+            </div>
+            <p class="pb-hash">Hashtags: ${r.hashtags}</p>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="section">
+      <h2 class="sectiontitle" style="margin-bottom:16px;">Wochenmuster</h2>
+      <div class="glass-card table-card">
+        <table class="wk-table">
+          <thead><tr><th>Tag</th><th style="color:#0A66C2">LinkedIn</th><th style="color:#E1306C">Instagram</th><th style="color:#FF0050">TikTok</th></tr></thead>
+          <tbody>
+            ${WEEK_PATTERN.map(w=>`<tr><td class="wk-tag">${w.tag}</td><td>${w.linkedin}</td><td>${w.instagram}</td><td>${w.tiktok}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderEinstellungen(){
+  return `
+    <div class="section">
+      <h1 class="pagetitle font-display">Einstellungen</h1>
+      <p class="pagesub">API-Zugang und Unternehmens-Kontext</p>
+    </div>
+    <div class="glass-card" style="border-radius:12px;padding:20px;margin-bottom:24px;">
+      <label class="field-label">Anthropic API Key</label>
+      <input type="password" value="${esc(state.settings.apiKey)}" placeholder="sk-ant-..." onchange="saveSettings('apiKey', this.value)">
+      <div class="settings-hint">Wird nur lokal in deinem Browser gespeichert (localStorage), nie an einen anderen Server geschickt. Abrechnung läuft transparent über dein Anthropic-Konto nach tatsächlichem Token-Verbrauch statt über ein intransparentes Credit-System.</div>
+    </div>
+    <div class="glass-card" style="border-radius:12px;padding:20px;margin-bottom:24px;">
+      <label class="field-label">Unternehmens-Kontext (ersetzt die Obsidian-Live-Anbindung)</label>
+      <textarea rows="10" onchange="saveSettings('vaultContext', this.value)">${esc(state.settings.vaultContext)}</textarea>
+      <div class="settings-hint">Wird bei aktivierter Option "Unternehmens-Kontext einbeziehen" jedem Generierungs-Prompt mitgegeben. Halte ihn aktuell, damit der generierte Content passt.</div>
+    </div>
+    <div class="glass-card" style="border-radius:12px;padding:20px;">
+      <label class="field-label">Daten</label>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">${state.posts.length} gespeicherte Posts insgesamt.</div>
+      <button class="delete-btn" style="padding:8px 16px;font-size:13px;" onclick="if(confirm('Wirklich alle gespeicherten Posts löschen?')){state.posts=[];saveState();render();}">Alle Posts löschen</button>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
