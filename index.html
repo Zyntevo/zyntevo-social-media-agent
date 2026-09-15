@@ -376,10 +376,12 @@ const WEEK_PATTERN = [
 function uid(){ return 'p'+Date.now()+Math.random().toString(36).slice(2,8); }
 function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function hexAlpha(hex, alphaHex){ return hex + alphaHex; }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+function localISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseLocalDate(s){ const [y,m,day] = s.split('-').map(Number); return new Date(y, m-1, day); }
+function todayISO(){ return localISO(new Date()); }
 function startOfWeek(d){ const dt=new Date(d); const day=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0); return dt; }
-function isSameWeek(dateStr){ if(!dateStr) return false; const d=new Date(dateStr); const now=new Date(); const s=startOfWeek(now); const e=new Date(s); e.setDate(e.getDate()+7); return d>=s && d<e; }
-function isSameMonth(dateStr){ if(!dateStr) return false; const d=new Date(dateStr); const now=new Date(); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); }
+function isSameWeek(dateStr){ if(!dateStr) return false; const d=parseLocalDate(dateStr); const now=new Date(); const s=startOfWeek(now); const e=new Date(s); e.setDate(e.getDate()+7); return d>=s && d<e; }
+function isSameMonth(dateStr){ if(!dateStr) return false; const d=parseLocalDate(dateStr); const now=new Date(); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); }
 function copyToClipboard(text, btnEl){ navigator.clipboard.writeText(text).then(()=>{ if(btnEl){const old=btnEl.textContent; btnEl.textContent='Kopiert!'; setTimeout(()=>{btnEl.textContent=old;},1500);} }); }
 
 //////////////////// API CALL ////////////////////
@@ -518,7 +520,7 @@ function saveWochenplanToCalendar(){
   const dayIndex = {Mo:0,Di:1,Mi:2,Do:3,Fr:4,Sa:5,So:6};
   wpOutput.forEach(item=>{
     const d = new Date(monday); d.setDate(d.getDate() + (dayIndex[item.tag]||0));
-    state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:wpAudience, topic:'', content:item.content, createdAt:todayISO(), scheduledDate:d.toISOString().slice(0,10), status:'geplant' });
+    state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:wpAudience, topic:'', content:item.content, createdAt:todayISO(), scheduledDate:localISO(d), status:'geplant' });
   });
   saveState(); wpOutput=null; setTab('kalender');
 }
@@ -546,7 +548,7 @@ function importAutoPlanPost(idx){
   const dayIndex = {Mo:0,Di:1,Mi:2,Do:3,Fr:4,Sa:5,So:6};
   const monday = new Date(autoPlan.weekOf+'T00:00:00');
   const d = new Date(monday); d.setDate(d.getDate() + (dayIndex[item.tag]||0));
-  state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:item.audience||'Allgemein', topic:'', content:item.content, createdAt:todayISO(), scheduledDate:d.toISOString().slice(0,10), status:'geplant' });
+  state.posts.unshift({ id:uid(), platform:item.platform, contentType:item.type, audience:item.audience||'Allgemein', topic:'', content:item.content, createdAt:todayISO(), scheduledDate:localISO(d), status:'geplant' });
   saveState();
   item.imported = true;
   render();
